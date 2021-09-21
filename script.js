@@ -221,7 +221,7 @@ const retriveFromLocalStoage=async()=>{
         myLibrary=JSON.parse(localStorage.getItem("array"));
         console.log(localStorage.getItem("array"));
         if(myLibrary==null||myLibrary.length==0){
-            myLibrary=await (await fetch("games-library/initial.json")).json()
+            myLibrary=await (await fetch("initial.json")).json()
         }
         
     }else{
