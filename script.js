@@ -17,11 +17,13 @@ const getRandomId=()=>{
 
 const addGameToLibrary=(game)=>{
     myLibrary.push(game);
+    updateLocalStorage();
 }
 const removeGameFromLibrary=(id)=>{
     myLibrary= myLibrary.filter((item,index)=>index!=id);
     console.log(id);
     displayGamesOnPage();
+    updateLocalStorage();
 }
 const updateProgress=(idx,full)=>{
     if(full)
@@ -29,6 +31,7 @@ const updateProgress=(idx,full)=>{
     else
     myLibrary[idx].progress=0;
     displayGamesOnPage();
+    updateLocalStorage();
 }
 
 const displayGamesOnPage=()=>{
@@ -55,11 +58,6 @@ const updateCloseButtons=()=>{
     })
 }
 
-
-
-
-
-
 const updateCheckBoxes=()=>{
     let CheckBoxes=[...document.getElementsByClassName("played-check-box")];
     CheckBoxes.forEach((item,idx)=>{
@@ -73,18 +71,6 @@ const updateCheckBoxes=()=>{
         })
     })
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 const createCardwithInfo =(game)=>{
     const card=document.createElement("div");
@@ -132,7 +118,7 @@ const createCardwithInfo =(game)=>{
 
     const publisherText=document.createElement("span");
     publisherText.classList.add("card-text");
-    publisherText.innerHTML=`By<em>${game.developers}</em>`;
+    publisherText.innerHTML=`By <em>${game.developers}</em>`;
 
     cardBody.appendChild(publisherText);
 
@@ -196,6 +182,55 @@ const handleSubmit=()=>{
     gameProgress.value=0;
 }
 
+const storageAvailable=(type) =>{
+    var storage;
+    try {
+        storage = window[type];
+        var x = '__storage_test__';
+        storage.setItem(x, x);
+        storage.removeItem(x);
+        console.log("available");
+        return true;
+    }
+    catch(e) {
+        console.log("not available");
+        return e instanceof DOMException && (
+            // everything except Firefox
+            e.code === 22 ||
+            // Firefox
+            e.code === 1014 ||
+            // test name field too, because code might not be present
+            // everything except Firefox
+            e.name === 'QuotaExceededError' ||
+            // Firefox
+            e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
+            // acknowledge QuotaExceededError only if there's something already stored
+            (storage && storage.length !== 0);
+    }
+}
+
+
+const updateLocalStorage=()=>{
+    if(storageAvailable('localStorage')){
+        localStorage.setItem("array",JSON.stringify(myLibrary));
+    }
+}
+
+const retriveFromLocalStoage=async()=>{
+    if(storageAvailable('localStorage')){
+        myLibrary=JSON.parse(localStorage.getItem("array"));
+        console.log(localStorage.getItem("array"));
+        if(myLibrary==null||myLibrary.length==0){
+            myLibrary=await (await fetch("/initial.json")).json()
+        }
+        
+    }else{
+        myLibrary=[];
+    }
+    displayGamesOnPage();
+}
+
+
 let myLibrary =[]
 const parentNodeCards=document.getElementById("gamesDisplay");
 
@@ -206,4 +241,13 @@ const gameProgress=document.getElementById("gameProgress");
 
 const SubmitButton=document.getElementById("submit-entry")
 
+
+retriveFromLocalStoage();
 SubmitButton.addEventListener("click",handleSubmit)
+
+
+
+//  fetch("/initial.json")
+//   .then(response => response.json())
+//   .then(json => console.log(json));
+
